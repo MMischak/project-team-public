@@ -61,7 +61,7 @@ try {
   await page.getByRole('button', { name: 'Team', exact: true }).click();
   assert.equal(await page.getByRole('button', { name: 'Project brief attached · remove', exact: true }).count(), 1);
   await page.getByRole('button', { name: 'Meeting room', exact: true }).click();
-  await page.getByRole('heading', { name: 'Bring your team into the conversation', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'A conversation with your team', exact: true }).waitFor();
   await page.getByRole('button', { name: 'Outputs', exact: true }).click();
   await page.getByRole('heading', { name: 'Your outputs will live here', exact: true }).waitFor();
   await page.getByRole('button', { name: 'Project', exact: true }).click();
@@ -105,7 +105,15 @@ try {
   await page.getByRole('dialog').getByRole('button', { name: 'Propose plan', exact: true }).click();
   await waitState(value => value.team.plans.some(plan => plan.status === 'proposed') && !value.busy);
   assert.equal((await state()).team.tasks.length, 0, 'proposal alone cannot dispatch work');
-  await page.getByRole('button', { name: 'Approve plan', exact: true }).click();
+  const beforePlanReview = await state();
+  await page.getByRole('button', { name: 'Review plan', exact: true }).click();
+  const planReview = page.getByRole('dialog');
+  await planReview.waitFor({ state: 'visible' });
+  const afterPlanReview = await state();
+  assert.equal(afterPlanReview.team.tasks.length, 0, 'reviewing a plan cannot dispatch work');
+  assert.equal(afterPlanReview.team.plans[0].status, 'proposed');
+  assert.deepEqual(afterPlanReview.credits, beforePlanReview.credits, 'reviewing a plan cannot reserve or spend credits');
+  await planReview.getByRole('button', { name: 'Approve plan', exact: true }).click();
   const first = await waitState(value => value.team.milestones[0]?.status === 'review' && !value.busy);
   const v1 = first.team.outputs.find(output => output.path); assert.equal(v1.version, 1);
   await page.getByRole('button', { name: 'Request changes', exact: true }).click();

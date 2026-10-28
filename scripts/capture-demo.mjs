@@ -20,11 +20,10 @@ try {
   const post = async (route, data = {}) => { const response = await page.request.post(`${base}/api/${route}`, { headers: { 'X-Project-Team': '1' }, data }); assert.ok(response.ok(), route); return response.json(); };
   const until = async predicate => { const end = Date.now() + 10000; while (true) { const value = await state(); if (predicate(value)) return value; assert.ok(Date.now() < end); await new Promise(resolve => setTimeout(resolve, 30)); } };
   assert.equal((await state()).demo, true);
-  await post('project', { name: 'Product guide', brief: 'Write a short product guide with a clear goal and a useful next step.', folder, credits: 500 }); await post('connect');
-  for (const [role, name, responsibility] of [['builder', 'Focused builder', 'Create the guide from the approved brief. Keep this task focused.'], ['reviewer', 'Independent reviewer', 'Check clarity, completeness and the exact captured version.']]) await post('hire', { id: randomUUID(), name, role, responsibility, model: 'demo', effort: 'demo' });
-  await post('resume'); await post('plan', { id: randomUUID(), instruction: 'A small deliverable and an independent review.' }); let value = await until(s => !s.busy && s.team.plans.length);
-  await post('approve-plan', { id: randomUUID(), planId: value.team.plans[0].id }); await until(s => !s.busy && s.team.milestones[0].status === 'review');
-  await page.goto(base); await page.getByRole('heading', { name: 'Manager', exact: true }).waitFor(); await page.getByRole('button', { name: /Project note · v1/ }).first().click();
+  await post('project', { name: 'Website launch', brief: 'Create a clear and compelling product site with everything customers need to understand, trust and get started.', folder, credits: 500 }); await post('connect');
+  for (const [role, name, responsibility] of [['builder', 'Builder', 'Create the guide from the approved brief. Keep this task focused.'], ['reviewer', 'Reviewer', 'Check clarity, completeness and the exact captured version.']]) await post('hire', { id: randomUUID(), name, role, responsibility, model: 'demo', effort: 'demo' });
+  await post('resume'); await post('plan', { id: randomUUID(), instruction: 'A small deliverable and an independent review.' }); await until(s => !s.busy && s.team.plans.length);
+  await page.goto(base); await page.getByRole('heading', { name: 'Manager', exact: true }).waitFor();
   await page.evaluate(async () => { await document.fonts.ready; window.scrollTo(0, 0); }); assert.deepEqual(errors, []);
   await mkdir(join(root, 'docs/assets'), { recursive: true }); await page.screenshot({ path: join(root, 'docs/assets/workspace.png'), fullPage: false });
   const exited = once(child, 'exit'); await post('stop'); await exited;

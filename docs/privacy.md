@@ -2,7 +2,7 @@
 
 ## Public source and private runtime data
 
-The repository contains source code, test fixtures and a synthetic demo screenshot. It does not require your project files, credentials, account identifiers or conversation logs to be committed.
+The repository contains source code, test fixtures, synthetic demo/design images and generated fictional portraits. The portraits are not user or employee photographs. It does not require your project files, credentials, account identifiers or conversation logs to be committed.
 
 Normal state on macOS lives under `~/Library/Application Support/Project Team/live`. Demo mode uses a separate `demo` directory. `--state-dir` or `PROJECT_TEAM_STATE_DIR` can select another location. Keep it outside tracked source and outside the agents' writable project folder.
 

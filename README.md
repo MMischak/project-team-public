@@ -35,8 +35,8 @@ The goal is **appropriate capability for the task**. Keep routine work focused, 
 5. **Steer at milestones.** Accept outputs, request changes, discuss alternatives in a meeting, pause or resume. Export chosen versions to GitHub when ready.
 
 <p align="center">
-  <img src="docs/assets/workspace.png" alt="Project Team running with synthetic demo tasks, captured outputs and a visible token allowance" width="100%" />
-  <br/><sub>Disposable demo data. No real account, private project or live AI conversation is shown.</sub>
+  <img src="docs/assets/workspace.png" alt="Project Team with a synthetic demo project, proposed tasks, selected members and a visible token allowance" width="100%" />
+  <br/><sub>Disposable demo data and generated fictional portraits. No real account, private project or live AI conversation is shown.</sub>
 </p>
 
 ## What is built
@@ -98,4 +98,4 @@ npm run check:publication
 
 The automated suite uses isolated fixtures and does not require live inference. Browser checks use Playwright; native diagnostic commands are opt-in and described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-The next steps are better suggestions for matching tasks to members/models, tighter task context, and benchmarks that compare token usage with deliverable quality. See the [roadmap](docs/roadmap.md).
+The interface follows the [workspace design language](docs/design.md), with [documented design verification](design-qa.md).\n\nThe next steps are better suggestions for matching tasks to members/models, tighter task context, and benchmarks that compare token usage with deliverable quality. See the [roadmap](docs/roadmap.md).
