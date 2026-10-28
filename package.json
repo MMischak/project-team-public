@@ -1,0 +1,42 @@
+{
+  "name": "project-team",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "node --disable-warning=ExperimentalWarning server/main.ts --dev",
+    "build": "tsc --noEmit && vite build",
+    "start": "node --disable-warning=ExperimentalWarning server/main.ts",
+    "demo": "node --disable-warning=ExperimentalWarning server/main.ts --demo --dev",
+    "test": "node --disable-warning=ExperimentalWarning --test tests/*.test.ts tests/*.test.mjs",
+    "check:team": "node --disable-warning=ExperimentalWarning scripts/check-team.mjs",
+    "check:recovery": "node --disable-warning=ExperimentalWarning scripts/check-recovery.mjs",
+    "check:meetings": "node --disable-warning=ExperimentalWarning scripts/check-meetings.mjs",
+    "check:storage": "node --disable-warning=ExperimentalWarning scripts/check-storage.mjs",
+    "test:storage-browser": "npm run build && node tests/browser-storage.mjs",
+    "check:permissions": "node scripts/check-project-permissions.mjs",
+    "test:browser": "npm run build && node tests/browser-workspace.mjs",
+    "test:recovery-browser": "npm run build && node tests/browser-recovery.mjs",
+    "test:checkpoints-browser": "npm run build && node tests/browser-checkpoints.mjs",
+    "test:meetings-browser": "npm run build && node tests/browser-meetings.mjs",
+    "typecheck": "tsc --noEmit",
+    "check:publication": "node scripts/check-publication.mjs",
+    "capture:demo": "npm run build && node scripts/capture-demo.mjs"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0"
+  },
+  "description": "Match AI agent capability and reasoning effort to the task, with visible token usage and shared deliverables."
+}

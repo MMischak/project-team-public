@@ -1,0 +1,24 @@
+name: Bug report
+description: Report a reproducible problem using synthetic data.
+body:
+  - type: markdown
+    attributes:
+      value: "Use disposable examples. Do not paste credentials, account details, real prompts, private files, local home paths or raw session logs. For sensitive findings, follow SECURITY.md."
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Describe the expected and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce with synthetic data
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Runtime versions
+      description: OS, Node and Codex versions; no account identifiers or local paths.
