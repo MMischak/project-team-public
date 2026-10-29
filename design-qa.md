@@ -15,7 +15,7 @@ The earlier [visual target](docs/assets/design-target.png) documents the approve
 
 ## Functional verification
 
-- 121 public unit/integration tests and production/type checks pass. The synchronized private checkout passes its 120 tests and production build.
+- 121 public unit/integration tests and production/type checks pass.
 - All six browser workflows pass: workspace, saved projects/characters, meetings, recovery, GitHub checkpoints and storage. They use isolated demo/fake-provider fixtures and no live inference or external publishing.
 - The saved-project workflow verifies separate conversations, tasks, outputs, meetings, ledgers and runtime bindings; shared identities and unique portraits; folder-overlap rejection; stale mutation/read protection; draft separation and attachment reset; reload/restart persistence; and no automatic dispatch.
 - Integration regressions cover draining active turns and exports, request races, unsafe database/native paths, failed-close retries and one app allowance across inactive project data.
@@ -29,5 +29,13 @@ The scoped independent backend review has no unresolved high-priority finding. P
 The Active project control is now a native dropdown. Switching keeps the selected section open while all project-specific controls remain scoped by the keyed session. Meeting room identifies its project, meeting count and paused/offline state; the manager header also names the current project. Keyboard focus returns to the selector after a switch.
 
 Production/type checks and the workspace, meeting and saved-project browser workflows were rerun successfully. The expanded saved-project workflow switches between distinct meetings/transcripts without leaving Meeting room, checks draft/recipient/attachment reset, independent process queues and explicit reconnect/Resume. Project, Team and Meeting room fit 320–1440 pixels with all nine participants. A previously incorrect avatar-stack sizing selector was fixed when this full-participant mobile check exposed it. Success captures wait for images to decode.
+
+## Public README gallery
+
+The README and screenshot tour use five fresh captures from one disposable demo run: Website launch overview, shared team profiles, Launch planning discussion, Customer insights / Customer discovery, and the mobile overview. Desktop images are 1440 × 1040; mobile is 390 × 844. Alex, Sam and Jordan retain their characters across views. The Website launch ledger is 3.6 demo credits throughout; Customer insights has its own 2.7-credit discussion after explicit connect/Resume.
+
+Fonts and portraits finish loading before capture. CSS animations are fast-forwarded and the caret is hidden so transient navigation/hover states do not appear. Meeting views use actual page scrolling to retain project context and expose worker perspectives; no image content is retouched. Each PNG contains only image chunks, with no ancillary metadata. The capture run reports no browser errors, external requests or horizontal overflow and removes its temporary state.
+
+All 121 public unit/integration tests and the production build pass for this publication. The gallery has been visually inspected, local links checked, and screenshot-tool prerequisites documented. Storage documentation and informational UI copy describe cleanup at app startup/shutdown or on manual request, matching the implementation.
 
 final result: passed

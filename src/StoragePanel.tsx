@@ -172,7 +172,8 @@ export function StoragePanel({
         Cleanup keeps saved conversations, deliverables, credits, recovery and
         exports. It pauses work and closes the connection; reconnect and Resume
         when ready. Cleanup applies to this project. Old completed run traces
-        and excess diagnostics are cleaned when a project opens and at shutdown.
+        and excess diagnostics are cleaned at app startup and shutdown for the
+        selected project.
         Open an older project to clean its traces. The app limit includes all
         saved projects. At that limit, cleanup can remove recent completed
         traces too.

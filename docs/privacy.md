@@ -18,9 +18,9 @@ GitHub publishing is explicit. Inspect the checkpoint preview and the destinatio
 
 ## Storage controls
 
-Settings show app usage across all saved projects and the selected project-folder usage. The app allowance and diagnostic limit are shared once across the catalog; adding a project does not add another allowance. Defaults are 1,024 MiB app data, 2,048 MiB project data, 64 MiB diagnostics and seven-day completed native trace retention. When the selected project opens or closes, or through manual cleanup, eligible old/excess diagnostics, completed private native traces, redundant completed recovery payloads and orphan snapshots can be removed.
+Settings show app usage across all saved projects and the selected project-folder usage. The app allowance and diagnostic limit are shared once across the catalog; adding a project does not add another allowance. Defaults are 1,024 MiB app data, 2,048 MiB project data, 64 MiB diagnostics and seven-day completed native trace retention. At app startup/shutdown for the selected project, or through manual cleanup, eligible old/excess diagnostics, completed private native traces, redundant completed recovery payloads and orphan snapshots can be removed.
 
-Cleanup stays within the selected project’s owned data. Open an inactive project to clean its eligible native traces and diagnostics; its files still count toward the shared limit while inactive. No inactive project is opened or given a model instruction just for maintenance.
+Cleanup stays within the selected project’s owned data. Select an inactive project and use manual cleanup to reclaim its eligible native traces and diagnostics; its files still count toward the shared limit while inactive. No inactive project is opened or given a model instruction just for maintenance.
 
 Saved conversations, every recorded deliverable version, credit history, unresolved recovery and pending exports remain protected. If protected material fills the budget, work pauses rather than deleting it. Recent completed traces can be reclaimed under app/free-disk pressure. Project files and unrelated shared caches/chats are never automatically deleted.
 
