@@ -45,7 +45,7 @@ export function ProjectRoster({
           onClick={openTeam}
           title={agent.responsibility}
         >
-          <AgentAvatar role={agent.role} />
+          <AgentAvatar role={agent.role} avatarId={agent.avatarId} />
           <span>
             <strong>{agent.name}</strong>
             <span className="roster-role">

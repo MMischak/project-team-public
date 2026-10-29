@@ -9,6 +9,7 @@ import {
 } from "@phosphor-icons/react";
 import type { Plan, Snapshot, Task } from "../server/types.ts";
 import { AgentAvatar } from "./AgentAvatar.tsx";
+import { projectHeaders } from "./projectScope.ts";
 import { useDialog } from "./useDialog.ts";
 import { RecoveryPanel } from "./RecoveryPanel.tsx";
 import { CheckpointPanel } from "./CheckpointPanel.tsx";
@@ -129,7 +130,9 @@ export function TeamWorkspace({
     let cancelled = false;
     setPreview(null);
     setPreviewError("");
-    fetch(`/api/output/${selectedOutput.id}`)
+    fetch(`/api/output/${selectedOutput.id}`, {
+      headers: projectHeaders(state),
+    })
       .then(async (response) => {
         if (!response.ok) throw new Error();
         return response.json();
@@ -145,7 +148,7 @@ export function TeamWorkspace({
     return () => {
       cancelled = true;
     };
-  }, [selectedOutput?.id]);
+  }, [selectedOutput?.id, state.workspace?.activeProjectId]);
 
   const inspect = (id: string) => {
     const output = team.outputs.find((item) => item.id === id)!;
@@ -219,13 +222,18 @@ export function TeamWorkspace({
             <div>
               <h1>Your team</h1>
               <p>
-                Match each role to a model and reasoning effort that fits its
-                tasks.
+                One crew across your projects. Match each role to a model and
+                reasoning effort that fits its tasks.
               </p>
             </div>
             <button
               className="primary"
-              disabled={disabled || !project || !team.models.length}
+              disabled={
+                disabled ||
+                !project ||
+                !team.models.length ||
+                team.agents.length >= 8
+              }
               onClick={() => setModal("hire")}
             >
               <Plus size={20} />
@@ -271,7 +279,7 @@ export function TeamWorkspace({
                   <dd>{state.connection.model ?? "Selected by Codex"}</dd>
                 </div>
                 <div>
-                  <dt>Usage</dt>
+                  <dt>Usage in this project</dt>
                   <dd>{number(team.agentCredits.manager ?? 0)} credits used</dd>
                 </div>
               </dl>
@@ -286,7 +294,7 @@ export function TeamWorkspace({
               return (
                 <article className="member-card" key={agent.id}>
                   <div className="member-profile-heading">
-                    <AgentAvatar role={agent.role} />
+                    <AgentAvatar role={agent.role} avatarId={agent.avatarId} />
                     <div className="member-identity">
                       <span className="member-role">
                         {agent.role === "builder" ? "Builder" : "Reviewer"}
@@ -316,7 +324,7 @@ export function TeamWorkspace({
                       <dd>{agent.effort}</dd>
                     </div>
                     <div>
-                      <dt>Usage</dt>
+                      <dt>Usage in this project</dt>
                       <dd>
                         {number(team.agentCredits[agent.id] ?? 0)} credits used
                       </dd>
@@ -866,6 +874,10 @@ export function TeamWorkspace({
                           setResponsibility(event.target.value)
                         }
                       />
+                      <small>
+                        This role description travels with your member across
+                        projects. Keep project instructions in the brief.
+                      </small>
                     </label>
                     <label>
                       Model
@@ -1035,7 +1047,10 @@ function PlanTasks({
                     </div>
                     <div className="plan-task-assignee">
                       {agent ? (
-                        <AgentAvatar role={agent.role} />
+                        <AgentAvatar
+                          role={agent.role}
+                          avatarId={agent.avatarId}
+                        />
                       ) : (
                         <UsersThree className="unassigned-avatar" size={28} />
                       )}
@@ -1134,7 +1149,9 @@ function TaskRow({
         {task.summary && <p>{task.summary}</p>}
       </div>
       <div className="task-assignee">
-        {assigned && <AgentAvatar role={assigned.role} />}
+        {assigned && (
+          <AgentAvatar role={assigned.role} avatarId={assigned.avatarId} />
+        )}
         <div className="assignee-info">
           <b>{assigned?.name ?? "Needs a hire"}</b>
           {assigned && (

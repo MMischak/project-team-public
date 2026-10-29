@@ -94,7 +94,7 @@ export class CodexManager implements ManagerProvider {
   }
   async connect() {
     if (!this.child) {
-      await mkdir(join(this.stateDir, 'manager'), { recursive: true, mode: 0o700 });
+      if (!this.isolated) await mkdir(join(this.stateDir, 'manager'), { recursive: true, mode: 0o700 });
       const bundled = '/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex';
       let command = this.command ?? process.env.PROJECT_TEAM_CODEX_BIN ?? 'codex';
       if (!this.command && !process.env.PROJECT_TEAM_CODEX_BIN) try { await access(bundled, constants.X_OK); command = bundled; } catch { /* use PATH */ }

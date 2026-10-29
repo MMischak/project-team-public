@@ -24,7 +24,7 @@ try {
   await launch(); browser = await chromium.launch({ headless: true }); page = await browser.newPage({ viewport: { width: 1440, height: 1000 } }); const errors = [];
   const observe = () => page.on('pageerror', error => errors.push(error.message)); observe();
   const state = async () => (await page.request.get(`${base}/api/state`)).json();
-  const post = async (route, input = {}) => { const response = await page.request.post(`${base}/api/${route}`, { headers: { 'X-Project-Team': '1' }, data: input }); assert.ok(response.ok(), `${route} succeeded`); return response.json(); };
+  const post = async (route, input = {}) => { const response = await page.request.post(`${base}/api/${route}`, { headers: { 'X-Project-Team': '1', 'X-Project-Id': (await state()).workspace?.activeProjectId ?? 'none' }, data: input }); assert.ok(response.ok(), `${route} succeeded`); return response.json(); };
   const waitState = async predicate => { const end = Date.now() + 10000; while (true) { const value = await state(); if (predicate(value)) return value; assert.ok(Date.now() < end, 'checkpoint operation completed'); await new Promise(resolve => setTimeout(resolve, 30)); } };
   await post('project', { name: 'Checkpoint browser check', brief: 'A usable local note.', folder, credits: 500 }); await post('connect');
   for (const role of ['builder', 'reviewer']) await post('hire', { id: randomUUID(), name: `Demo ${role}`, role, responsibility: role, model: 'demo', effort: 'demo' });

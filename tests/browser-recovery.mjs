@@ -54,7 +54,7 @@ try {
   assert.equal((await state()).team.outputs.length, 1);
   // A different command cannot repeat an already completed recovery.
   const kept = value.recovery[0], command = { id: randomUUID(), stepId: kept.id, action: 'check', outputIds: [] };
-  const response = await page.request.post(`${base}/api/recovery`, { headers: { 'X-Project-Team': '1' }, data: command }); assert.equal(response.status(), 409, 'a new command cannot restore a completed attempt twice');
+  const response = await page.request.post(`${base}/api/recovery`, { headers: { 'X-Project-Team': '1', 'X-Project-Id': (await state()).workspace?.activeProjectId ?? 'none' }, data: command }); assert.equal(response.status(), 409, 'a new command cannot restore a completed attempt twice');
   for (const width of [320, 390, 768, 1024, 1440]) { await page.setViewportSize({ width, height: 1000 }); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `recovery fits ${width}px`); }
   await page.getByRole('button', { name: 'Resume project', exact: true }).click();
   value = await waitState(value => value.team.milestones[0].status === 'review' && !value.busy);

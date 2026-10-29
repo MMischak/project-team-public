@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import type { CheckpointPreview, Snapshot } from "../server/types.ts";
 import { useDialog } from "./useDialog.ts";
+import { projectHeaders } from "./projectScope.ts";
 
 const reasons: Record<string, string> = {
   checkpoint_interrupted:
@@ -76,7 +77,11 @@ export function CheckpointPanel({
     try {
       const response = await fetch("/api/checkpoint-preview", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Project-Team": "1" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Project-Team": "1",
+          ...projectHeaders(state),
+        },
         body: JSON.stringify({ outputIds: ids, summary }),
       });
       const result = await response.json();

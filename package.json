@@ -1,5 +1,5 @@
 {
-  "name": "project-team",
+  "name": "tinkrew",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -18,6 +18,7 @@
     "check:storage": "node --disable-warning=ExperimentalWarning scripts/check-storage.mjs",
     "test:storage-browser": "npm run build && node tests/browser-storage.mjs",
     "check:permissions": "node scripts/check-project-permissions.mjs",
+    "test:projects-browser": "npm run build && node tests/browser-projects.mjs",
     "test:browser": "npm run build && node tests/browser-workspace.mjs",
     "test:recovery-browser": "npm run build && node tests/browser-recovery.mjs",
     "test:checkpoints-browser": "npm run build && node tests/browser-checkpoints.mjs",

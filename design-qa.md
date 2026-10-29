@@ -1,31 +1,27 @@
-# Design verification — workspace refresh
+# Tinkrew — design and workflow verification
 
-Verified on 28 October 2026 against the [selected visual target](docs/assets/design-target.png): a quiet white SaaS workspace with generated photographic characters. The [implemented demo capture](docs/assets/workspace.png) is reproducible with the demo capture script.
+Verified on 29 October 2026. The approved quiet SaaS layout remains the visual reference; the requested follow-up replaces photographic characters with distinct fictional adults in an animated-film style and adds saved-project navigation. The [current demo capture](docs/assets/workspace.png) is reproducible with `npm run capture:demo`.
 
-## Comparison and iteration
+## Visual checks
 
-The source is 1488 × 1057 pixels. Live desktop captures used a 1488 × 1059 CSS viewport; the two-pixel height difference was accounted for without stretching either image. Full-frame and focused side-by-side composites were inspected. A separate 390 × 844 capture and mobile plan-review dialog were checked. The README capture uses 1440 × 1040.
+- White/ink work surfaces, blue selection/focus, readable sentence-case typography, fine dividers and a persistent manager conversation retain the approved hierarchy.
+- The manager and eight possible hires have nine different original PNG portraits. A member’s appearance follows their identity across projects, including members with the same role. No runtime image generation or image-service request is needed.
+- Project names, model/effort, usage and status come from saved state. Team profiles identify usage as belonging to the current project. Demo counters and examples are synthetic.
+- The sidebar offers a separate New project action and shows which saved project is selected. Empty, paused, offline, switching and working states preserve their real meanings.
+- The full nine-character roster initially overflowed at tablet width. A nonzero wrapping basis fixed it; subsequent checks passed at 320, 390, 768, 1024 and 1440 pixels. Dialogs, credits, project navigation and the full roster fit those widths.
+- Desktop and mobile captures were inspected. The README uses 1440 × 1040 pixels and waits for every portrait to decode before capturing. Public images exclude ancillary provenance/personal metadata.
 
-The first comparison found smaller supporting typography/portraits, a narrow conversation column, weak assignment/outcome hierarchy and a stacked review summary. The next pass enlarged the relevant type and portraits, matched the column proportions, added assignment dividers, refined outcomes, restored a photographic conversation identity and made the review summary responsive. The attachment label was darkened to provide 5.30:1 contrast on its message background. Fresh captures verified these fixes.
-
-## Required surfaces
-
-- **Typography:** sentence-case system sans hierarchy, readable project/section titles, bounded descriptions and smaller supporting metadata. No external font request.
-- **Spacing and layout:** compact navigation, project context and roster above the work, a clear next action, fine separators and a persistent conversation. Dialogs scroll within the viewport.
-- **Color:** white/ink surfaces, blue focus/selection, actual-state green and strengthened muted/attachment text. Keyboard focus and reduced-motion behavior remain available.
-- **Images:** generated fictional photographic portraits load correctly and remain consistent across rosters, profiles, assignments and conversations. Public images exclude ancillary personal/provenance metadata. No user photographs or private source screenshots are included.
-- **Content:** names, model/effort, credits, task status and outputs come from saved state. Actual demo tasks/counters replace the concept's illustrative values. Pause/Resume, attachment and final approval controls are retained for the real application.
-
-The plan-review dialog is a read-only step: opening it leaves the proposal, tasks and credits unchanged. **Approve plan** remains the separate final action. Meeting drafts stay mounted; captured outputs, recovery decisions and export previews preserve their existing boundaries.
+The earlier [visual target](docs/assets/design-target.png) documents the approved layout, including its historical character treatment. It is not a claim that the old photographic faces remain in the application.
 
 ## Functional verification
 
-- 98 unit/integration checks and the production/type check pass.
-- Workspace browser checks pass, including the new plan-review no-dispatch/no-credit assertions, focus handling, hiring, revisions, version review and milestone acceptance.
-- Meeting, checkpoint, recovery and storage browser workflows pass with isolated synthetic fixtures.
-- Responsive checks cover 320, 390, 768, 1024 and 1440 pixels with visible credits and no horizontal overflow. Live desktop/mobile views were also inspected in the in-app browser.
-- Fixtures use no live model inference or external GitHub export.
+- 121 public unit/integration tests and production/type checks pass. The synchronized private checkout passes its 120 tests and production build.
+- All six browser workflows pass: workspace, saved projects/characters, meetings, recovery, GitHub checkpoints and storage. They use isolated demo/fake-provider fixtures and no live inference or external publishing.
+- The saved-project workflow verifies separate conversations, tasks, outputs, meetings, ledgers and runtime bindings; shared identities and unique portraits; folder-overlap rejection; stale mutation/read protection; draft separation and attachment reset; reload/restart persistence; and no automatic dispatch.
+- Integration regressions cover draining active turns and exports, request races, unsafe database/native paths, failed-close retries and one app allowance across inactive project data.
+- Reviewing a plan remains separate from approving it. Switching never authorizes model work, milestone acceptance or a checkpoint export.
+- No unexpected page/console error or external request remains in the new browser workflow. Its two deliberate Stop operations explicitly account for their expected event-stream transport closures.
 
-No actionable P0/P1/P2 finding remains. Optional P3 refinement: small-label sizing can be tuned further, and the assistant portrait sits within bubble metadata rather than beside the entire bubble. These do not block the selected visual direction or the workflow.
+The scoped independent backend review has no unresolved high-priority finding. Publication-content and secret scans are required before pushing.
 
 final result: passed

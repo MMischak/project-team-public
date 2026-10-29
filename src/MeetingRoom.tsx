@@ -182,6 +182,10 @@ export function MeetingRoom({
                     <AgentAvatar
                       key={id}
                       role={role(id)}
+                      avatarId={
+                        state.team.agents.find((agent) => agent.id === id)
+                          ?.avatarId
+                      }
                       className="meeting-participant-avatar"
                     />
                   ))}
@@ -287,6 +291,11 @@ export function MeetingRoom({
                       ) : (
                         <AgentAvatar
                           role={role(message.speakerId)}
+                          avatarId={
+                            state.team.agents.find(
+                              (agent) => agent.id === message.speakerId,
+                            )?.avatarId
+                          }
                           className="meeting-avatar"
                         />
                       )}
@@ -580,6 +589,7 @@ export function MeetingRoom({
                     />
                     <AgentAvatar
                       role={agent.role}
+                      avatarId={agent.avatarId}
                       className="participant-avatar"
                     />
                     <span>

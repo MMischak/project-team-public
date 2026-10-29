@@ -10,21 +10,26 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 let chromium;
 try { ({ chromium } = await import(process.env.PROJECT_TEAM_PLAYWRIGHT_MODULE ?? 'playwright')); }
 catch (error) { if (process.env.PROJECT_TEAM_PLAYWRIGHT_MODULE) throw error; ({ chromium } = await import(pathToFileURL(join(homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs')).href)); }
-const root = fileURLToPath(new URL('..', import.meta.url)), temporary = await mkdtemp(join(tmpdir(), 'project-team-public-demo-')), folder = join(temporary, 'project'), base = 'http://127.0.0.1:4187'; await mkdir(folder);
+const root = fileURLToPath(new URL('..', import.meta.url)), temporary = await mkdtemp(join(tmpdir(), 'project-team-public-demo-')), folder = join(temporary, 'project'), secondFolder = join(temporary, 'research'), base = 'http://127.0.0.1:4187'; await mkdir(folder); await mkdir(secondFolder);
 const child = spawn(process.execPath, ['--disable-warning=ExperimentalWarning', 'server/main.ts', '--demo', '--state-dir', join(temporary, 'state'), '--port', '4187'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
 let browser;
 try {
   await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(new Error('Demo startup timed out')), 10000); child.once('error', error => { clearTimeout(timer); reject(error); }); child.once('exit', code => { clearTimeout(timer); reject(new Error(`Demo exited: ${code}`)); }); child.stdout.on('data', data => { if (String(data).includes('is open')) { clearTimeout(timer); resolve(); } }); });
   browser = await chromium.launch({ headless: true }); const page = await browser.newPage({ viewport: { width: 1440, height: 1040 }, deviceScaleFactor: 1 }); const errors = []; page.on('pageerror', error => errors.push(error.message));
   const state = async () => (await page.request.get(`${base}/api/state`)).json();
-  const post = async (route, data = {}) => { const response = await page.request.post(`${base}/api/${route}`, { headers: { 'X-Project-Team': '1' }, data }); assert.ok(response.ok(), route); return response.json(); };
+  const post = async (route, data = {}) => { const response = await page.request.post(`${base}/api/${route}`, { headers: { 'X-Project-Team': '1', 'X-Project-Id': (await state()).workspace?.activeProjectId ?? 'none' }, data }); assert.ok(response.ok(), route); return response.json(); };
   const until = async predicate => { const end = Date.now() + 10000; while (true) { const value = await state(); if (predicate(value)) return value; assert.ok(Date.now() < end); await new Promise(resolve => setTimeout(resolve, 30)); } };
   assert.equal((await state()).demo, true);
-  await post('project', { name: 'Website launch', brief: 'Create a clear and compelling product site with everything customers need to understand, trust and get started.', folder, credits: 500 }); await post('connect');
-  for (const [role, name, responsibility] of [['builder', 'Builder', 'Create the guide from the approved brief. Keep this task focused.'], ['reviewer', 'Reviewer', 'Check clarity, completeness and the exact captured version.']]) await post('hire', { id: randomUUID(), name, role, responsibility, model: 'demo', effort: 'demo' });
+  await post('projects', { id: randomUUID(), name: 'Customer insights', brief: 'Turn customer interviews into a useful product direction.', folder: secondFolder, credits: 250 });
+  await post('projects', { id: randomUUID(), name: 'Website launch', brief: 'Create a clear and compelling product site with everything customers need to understand, trust and get started.', folder, credits: 500 }); await post('connect');
+  for (const [role, name, responsibility] of [['builder', 'Alex', 'Create the guide from the approved brief. Keep this task focused.'], ['reviewer', 'Sam', 'Check clarity, completeness and the exact captured version.']]) await post('hire', { id: randomUUID(), name, role, responsibility, model: 'demo', effort: 'demo' });
   await post('resume'); await post('plan', { id: randomUUID(), instruction: 'A small deliverable and an independent review.' }); await until(s => !s.busy && s.team.plans.length);
   await page.goto(base); await page.getByRole('heading', { name: 'Manager', exact: true }).waitFor();
-  await page.evaluate(async () => { await document.fonts.ready; window.scrollTo(0, 0); }); assert.deepEqual(errors, []);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all([...document.images].map(image => image.decode()));
+    window.scrollTo(0, 0);
+  }); assert.deepEqual(errors, []);
   await mkdir(join(root, 'docs/assets'), { recursive: true }); await page.screenshot({ path: join(root, 'docs/assets/workspace.png'), fullPage: false });
   const exited = once(child, 'exit'); await post('stop'); await exited;
   console.log('Synthetic README screenshot captured; no account data or AI inference used.');

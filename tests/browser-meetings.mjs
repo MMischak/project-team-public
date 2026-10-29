@@ -21,7 +21,7 @@ try {
   browser = await chromium.launch({ headless: true }); let page = await browser.newPage({ viewport: { width: 1440, height: 1000 } }); const errors = [];
   const observe = page => page.on('pageerror', error => errors.push(error.message)); observe(page);
   const state = async () => (await page.request.get(`${base}/api/state`)).json();
-  const post = async (route, input = {}) => { const response = await page.request.post(`${base}/api/${route}`, { headers: { 'X-Project-Team': '1' }, data: input }); assert.ok(response.ok(), `${route} succeeded`); return response.json(); };
+  const post = async (route, input = {}) => { const response = await page.request.post(`${base}/api/${route}`, { headers: { 'X-Project-Team': '1', 'X-Project-Id': (await state()).workspace?.activeProjectId ?? 'none' }, data: input }); assert.ok(response.ok(), `${route} succeeded`); return response.json(); };
   const waitState = async predicate => { const end = Date.now() + 10000; while (true) { const value = await state(); if (predicate(value)) return value; assert.ok(Date.now() < end, 'meeting browser operation completed'); await new Promise(resolve => setTimeout(resolve, 30)); } };
   // Seed the already-verified team workflow; exercise every new meeting control through the UI.
   await post('project', { name: 'Meeting browser check', brief: 'A short usable note.', folder, credits: 500 }); await post('connect');

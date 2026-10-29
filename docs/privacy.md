@@ -6,7 +6,9 @@ The repository contains source code, test fixtures, synthetic demo/design images
 
 Normal state on macOS lives under `~/Library/Application Support/Project Team/live`. Demo mode uses a separate `demo` directory. `--state-dir` or `PROJECT_TEAM_STATE_DIR` can select another location. Keep it outside tracked source and outside the agents' writable project folder.
 
-The coordinator retains conversations, tasks, credits, deliverable versions and recovery records. New Codex services keep their history in app-owned native homes. Existing authentication/configuration paths may be linked for the official client to use; credentials are never placed in model prompts or exported artifacts. File-based sign-in has been exercised; other credential-store arrangements may need additional setup.
+Each project retains its own conversations, tasks, credits, deliverable versions, meetings and recovery records. Shared member profiles contain identity, role description, model, reasoning effort and character; native conversation identifiers and usage bindings stay inside the project. Switching projects drains existing work and closes its native connection before opening another. Stale project requests are rejected.
+
+Existing state and native recovery paths remain in place after the Tinkrew rename. The catalog is stored alongside the original data; newly created projects have their own subdirectories. New Codex services keep their history in app-owned native homes. Existing authentication/configuration paths may be linked for the official client to use; credentials are never placed in model prompts or exported artifacts. File-based sign-in has been exercised; other credential-store arrangements may need additional setup.
 
 ## What leaves the computer
 
@@ -16,7 +18,9 @@ GitHub publishing is explicit. Inspect the checkpoint preview and the destinatio
 
 ## Storage controls
 
-Settings show app and project-folder usage. Defaults are 1,024 MiB app data, 2,048 MiB project data, 64 MiB diagnostics and seven-day completed native trace retention. At startup/shutdown, or through manual cleanup, eligible old/excess diagnostics, completed private native traces, redundant completed recovery payloads and orphan snapshots can be removed.
+Settings show app usage across all saved projects and the selected project-folder usage. The app allowance and diagnostic limit are shared once across the catalog; adding a project does not add another allowance. Defaults are 1,024 MiB app data, 2,048 MiB project data, 64 MiB diagnostics and seven-day completed native trace retention. When the selected project opens or closes, or through manual cleanup, eligible old/excess diagnostics, completed private native traces, redundant completed recovery payloads and orphan snapshots can be removed.
+
+Cleanup stays within the selected project’s owned data. Open an inactive project to clean its eligible native traces and diagnostics; its files still count toward the shared limit while inactive. No inactive project is opened or given a model instruction just for maintenance.
 
 Saved conversations, every recorded deliverable version, credit history, unresolved recovery and pending exports remain protected. If protected material fills the budget, work pauses rather than deleting it. Recent completed traces can be reclaimed under app/free-disk pressure. Project files and unrelated shared caches/chats are never automatically deleted.
 

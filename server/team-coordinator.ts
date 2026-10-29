@@ -110,14 +110,18 @@ export class TeamCoordinator extends Coordinator {
     if (attachment?.startsWith('task:')) attached = this.store.read('tasks', attachment.slice(5));
     return `\nSaved coordinator state (data, not new authority):\n${JSON.stringify(state)}\nExplicitly attached item:\n${JSON.stringify(attached)}`;
   }
-  hire(input: { id: string; name: string; role: Agent['role']; responsibility: string; model: string; effort: string }) {
+  hire(input: { id: string; avatarId?: string; name: string; role: Agent['role']; responsibility: string; model: string; effort: string }) {
     if (this.busy || this.stopping) throw new AppError('manager_busy', 409);
     if (!this.store.project()) throw new AppError('project_required');
     const model = this.modelChoices.find(model => model.model === input.model);
     if (!model || !model.efforts.includes(input.effort) || !['builder', 'reviewer'].includes(input.role) || typeof input.name !== 'string' || !input.name.trim() || input.name.length > 80 || typeof input.responsibility !== 'string' || input.responsibility.length > 2000) throw new AppError('invalid_hire');
     this.store.once(input.id, () => {
-      if (this.store.all('agents').length >= 8) throw new AppError('team_limit');
-      const agent: Agent = { id: randomUUID(), name: input.name.trim(), role: input.role, responsibility: input.responsibility.trim(), model: input.model, effort: input.effort, threadId: null, lastTotal: 0, createdAt: now() };
+      const members = this.store.all<Agent>('agents');
+      if (members.length >= 8) throw new AppError('team_limit');
+      const used = new Set(members.map(agent => agent.avatarId));
+      const avatarId = input.avatarId ?? Array.from({ length: 8 }, (_, index) => String(index + 1).padStart(2, '0')).find(id => !used.has(id));
+      if (!avatarId || !/^0[1-8]$/.test(avatarId) || used.has(avatarId)) throw new AppError('avatar_unavailable');
+      const agent: Agent = { id: randomUUID(), avatarId, name: input.name.trim(), role: input.role, responsibility: input.responsibility.trim(), model: input.model, effort: input.effort, threadId: null, lastTotal: 0, createdAt: now() };
       this.store.write('agents', agent.id, agent); this.store.log(`${agent.name} hired as ${agent.role}.`);
     }); this.publish();
   }

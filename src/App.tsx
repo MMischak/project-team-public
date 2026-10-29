@@ -30,6 +30,8 @@ import { useDialog } from "./useDialog.ts";
 import { MeetingRoom } from "./MeetingRoom.tsx";
 import { latestSnapshot } from "./snapshot.ts";
 import { StoragePanel, storageReasons } from "./StoragePanel.tsx";
+import { ProjectList } from "./ProjectList.tsx";
+import { projectHeaders } from "./projectScope.ts";
 
 type State = Snapshot & { draft: string };
 const restoreState = (saved: State): State => ({
@@ -139,6 +141,21 @@ const errors: Record<string, string> = {
   manager_busy: "The manager is finishing the current response.",
   folder_unavailable: "Enter the full path of an existing project folder.",
   invalid_project: "Check the project name, folder and credit allowance.",
+  stale_project:
+    "Another window changed the active project. Check the selected project and try again.",
+  project_switching: "Your team is saving its work before switching projects.",
+  project_not_found:
+    "This saved project could not be found. Refresh the workspace.",
+  project_folder_in_use:
+    "That folder already belongs to a saved project. Open that project instead.",
+  project_folder_overlap:
+    "Choose a separate folder for each project so their files stay apart.",
+  workspace_busy:
+    "Wait for the current action to finish before switching projects.",
+  coordinator_stopping:
+    "Your team’s previous connection is still closing. Try switching projects again, or stop the app in settings.",
+  team_limit:
+    "Your shared team can have up to eight members, plus the manager.",
   invalid_message: "Enter an instruction of up to 8,000 characters.",
   tool_activity_blocked:
     "A tool action was blocked. This manager connection supports conversation only.",
@@ -155,23 +172,8 @@ const stamp = (value: string) =>
 
 export function App() {
   const [state, setState] = useState<State | null>(null);
-  const [view, setView] = useState("Project");
-  const [settings, setSettings] = useState(false);
-  const [edit, setEdit] = useState(false);
-  const [text, setText] = useState("");
-  const [attachment, setAttachment] = useState<CurrentItem | null>(null);
-  const [currentItem, setCurrentItem] = useState<CurrentItem>({
-    id: "brief",
-    title: "Project brief",
-  });
-  const [error, setError] = useState("");
-  const [requesting, setRequesting] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
-  const bottom = useRef<HTMLDivElement>(null);
-  const input = useRef<HTMLTextAreaElement>(null);
-  const command = useRef<{ id: string; text: string } | null>(null);
-  const settingsDialog = useRef<HTMLElement>(null);
-  useDialog(settingsDialog, settings, () => setSettings(false));
+  const drafts = useRef(new Map<string, string>());
   useEffect(() => {
     const events = new EventSource("/api/events");
     events.onmessage = (event) => {
@@ -183,6 +185,72 @@ export function App() {
     events.onerror = () => setReconnecting(true);
     return () => events.close();
   }, []);
+  if (!state)
+    return (
+      <div className="loading">
+        <UsersThree size={48} weight="fill" />
+        <h1>Opening your workspace</h1>
+        <p>
+          {reconnecting
+            ? "Start the local coordinator to connect."
+            : "Restoring your saved projects…"}
+        </p>
+      </div>
+    );
+  const scope = state.workspace?.activeProjectId ?? "none";
+  return (
+    <WorkspaceSession
+      key={scope}
+      state={state}
+      updateState={(next) =>
+        setState((previous) => latestSnapshot(previous, restoreState(next)))
+      }
+      reconnecting={reconnecting}
+      initialDraft={drafts.current.get(scope) ?? ""}
+      saveDraft={(text) => {
+        if (text) drafts.current.set(scope, text);
+        else drafts.current.delete(scope);
+      }}
+    />
+  );
+}
+
+function WorkspaceSession({
+  state,
+  updateState,
+  reconnecting,
+  initialDraft,
+  saveDraft,
+}: {
+  state: State;
+  updateState: (next: State) => void;
+  reconnecting: boolean;
+  initialDraft: string;
+  saveDraft: (text: string) => void;
+}) {
+  const [view, setView] = useState("Project");
+  const [settings, setSettings] = useState(false);
+  const [edit, setEdit] = useState(false);
+  const [create, setCreate] = useState(false);
+  const [text, setText] = useState(initialDraft);
+  const [attachment, setAttachment] = useState<CurrentItem | null>(null);
+  const [currentItem, setCurrentItem] = useState<CurrentItem>({
+    id: "brief",
+    title: "Project brief",
+  });
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+  const requesting = pending || !!state.workspace?.switching;
+  const bottom = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLTextAreaElement>(null);
+  const command = useRef<{ id: string; text: string } | null>(null);
+  const projectCommand = useRef<{ id: string; values: string } | null>(null);
+  const switchCommands = useRef(new Map<string, string>());
+  const settingsDialog = useRef<HTMLElement>(null);
+  useDialog(settingsDialog, settings, () => setSettings(false));
+  useEffect(() => {
+    saveDraft(text);
+  }, [text]);
   useEffect(() => {
     const conversation = bottom.current?.parentElement;
     if (conversation)
@@ -196,11 +264,15 @@ export function App() {
   }, [state?.messages.length, state?.draft]);
   const api = async (route: string, body: unknown = {}) => {
     setError("");
-    setRequesting(true);
+    setPending(true);
     try {
       const response = await fetch(`/api/${route}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Project-Team": "1" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Project-Team": "1",
+          ...projectHeaders(state),
+        },
         body: JSON.stringify(body),
       });
       const result = await response.json();
@@ -209,8 +281,7 @@ export function App() {
           errors[result.error] ??
             "The action could not be completed. Try again when the connection is ready.",
         );
-      if (result.connection)
-        setState((previous) => latestSnapshot(previous, restoreState(result)));
+      if (result.connection) updateState(result);
       return true;
     } catch (error) {
       setError(
@@ -220,7 +291,7 @@ export function App() {
       );
       return false;
     } finally {
-      setRequesting(false);
+      setPending(false);
     }
   };
   const send = async (event: FormEvent) => {
@@ -235,22 +306,11 @@ export function App() {
       })
     ) {
       setText("");
+      saveDraft("");
       setAttachment(null);
       command.current = null;
     }
   };
-  if (!state)
-    return (
-      <div className="loading">
-        <UsersThree size={48} weight="fill" />
-        <h1>Opening your workspace</h1>
-        <p>
-          {reconnecting
-            ? "Start the local coordinator to connect."
-            : "Restoring your saved project…"}
-        </p>
-      </div>
-    );
   const project = state.project;
   const ready = state.connection.status === "ready";
   const active = project?.mode === "running";
@@ -306,7 +366,7 @@ export function App() {
         >
           <UsersThree size={34} weight="fill" />
           <span>
-            <strong>Project Team</strong>
+            <strong>Tinkrew</strong>
             <small>The right agent for each task</small>
           </span>
         </a>
@@ -381,8 +441,32 @@ export function App() {
             : "Reconnecting to the local coordinator. Your saved conversation stays here."}
         </div>
       )}
+      {state.workspace?.switching && (
+        <div className="connection-banner" role="status">
+          Saving the current project and bringing your team across…
+        </div>
+      )}
       <div className="workspace">
         <nav className="sidebar" aria-label="Workspace">
+          {state.workspace && (
+            <ProjectList
+              workspace={state.workspace}
+              disabled={requesting || state.stopping}
+              create={() => {
+                setError("");
+                projectCommand.current = null;
+                setCreate(true);
+              }}
+              select={(projectId) => {
+                if (!switchCommands.current.has(projectId))
+                  switchCommands.current.set(projectId, crypto.randomUUID());
+                void api("project-switch", {
+                  id: switchCommands.current.get(projectId),
+                  projectId,
+                });
+              }}
+            />
+          )}
           <div className="nav-items">
             {[
               { name: "Project", icon: FolderSimple },
@@ -466,7 +550,7 @@ export function App() {
                       className="primary"
                       onClick={() =>
                         !project
-                          ? setEdit(true)
+                          ? setCreate(true)
                           : needsConnection
                             ? void api("connect")
                             : recoveryPending
@@ -738,15 +822,34 @@ export function App() {
           </form>
         </aside>
       </div>
-      {edit && (
+      {(edit || create) && (
         <ProjectDialog
-          project={project}
-          onClose={() => setEdit(false)}
+          project={create ? null : project}
+          onClose={() => {
+            if (!requesting) {
+              setEdit(false);
+              setCreate(false);
+            }
+          }}
           save={async (values) => {
-            if (await api("project", values)) setEdit(false);
+            const signature = JSON.stringify(values);
+            if (projectCommand.current?.values !== signature)
+              projectCommand.current = {
+                id: crypto.randomUUID(),
+                values: signature,
+              };
+            if (
+              await api(create && state.workspace ? "projects" : "project", {
+                ...values,
+                id: projectCommand.current.id,
+              })
+            ) {
+              setEdit(false);
+              setCreate(false);
+            }
           }}
           error={error}
-          busy={requesting || state.busy}
+          busy={requesting || (!create && state.busy)}
         />
       )}
       {settings && (

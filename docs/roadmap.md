@@ -4,7 +4,7 @@ The goal is an AI team whose capability fits the work, with transparent usage an
 
 ## Implemented
 
-User-selected members/models/effort, manager proposals, sequential tasks, captured deliverable handoffs, independent review, milestone steering, meetings, token accounting, recovery, GitHub checkpoints and storage controls.
+Multiple saved projects with one active shared team, persistent illustrated identities, user-selected members/models/effort, manager proposals, sequential tasks, captured deliverable handoffs, independent review, milestone steering, meetings, token accounting, recovery, GitHub checkpoints and a shared app storage budget.
 
 ## Next questions to validate
 

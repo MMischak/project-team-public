@@ -1,6 +1,6 @@
 # Architecture
 
-Project Team is a React interface served by a loopback Node.js coordinator. The coordinator owns scheduling, SQLite state, output capture, usage accounting and publishing authority.
+Tinkrew is a React interface served by a loopback Node.js coordinator. A workspace hub owns the saved-project catalog, shared roster and one active coordinator. That coordinator owns scheduling, project state, output capture, usage accounting and publishing authority.
 
 ```mermaid
 flowchart LR
@@ -20,3 +20,7 @@ A step's identity and estimated token reservation are saved before dispatch. Rep
 Outputs are captured as immutable text/source snapshots. Reviews and handoffs name the exact version, and milestone acceptance releases dependent work. GitHub export uses coordinator-owned CLI authentication and creates a dedicated snapshot branch without staging or editing the selected project's working tree.
 
 Runtime state belongs outside the project folder. New native histories use private app-owned directories. Storage gates apply before reservations/dispatch and around worker commands; cleanup protects saved deliverables, recovery, usage records and exports. These guards are not filesystem quotas.
+
+Saved projects use separate SQLite databases and native history homes. The original database and native paths remain in place when imported, preserving recovery identities. The shared roster copies only member configuration; thread identifiers and usage totals are bound per project. One aggregate storage guard covers all catalog-owned roots.
+
+The hub pauses/drains work and in-flight requests before closing a project. New projects open paused and disconnected. Project requests and output reads carry the active project identifier; stale requests fail rather than applying to another project. One hub revision orders browser events across switches. See [the isolation decision](adr/0001-saved-project-isolation.md).

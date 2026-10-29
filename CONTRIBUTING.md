@@ -17,6 +17,7 @@ Unit/integration tests use disposable fixtures and do not make live model calls.
 
 ```sh
 npm run test:browser
+npm run test:projects-browser
 npm run test:storage-browser
 ```
 

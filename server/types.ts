@@ -12,7 +12,7 @@ export type TurnInspection = { state: 'unknown' | 'active' | 'completed' | 'ende
 export type RecoveryJournal = { prompt?: string; payload?: unknown; revision?: { taskId: string; milestoneId: string; feedback: string; decisionId?: string }; result?: { text: string; turnId: string }; outputs?: OutputVersion[]; captured?: boolean; afterCrash?: boolean; state?: 'unknown' | 'active' | 'ended' | 'ready' | 'recovered' | 'retry' | 'kept'; summary?: string; retryId?: string };
 export type RecoveryItem = { id: string; kind: string; title: string; state: NonNullable<RecoveryJournal['state']>; summary: string; result: string | null; outputs: OutputVersion[]; afterCrash: boolean; used: number; estimated: boolean };
 export type ModelChoice = { model: string; name: string; description: string; efforts: string[]; defaultEffort: string; isDefault: boolean };
-export type Agent = { id: string; name: string; role: 'builder' | 'reviewer'; responsibility: string; model: string; effort: string; threadId: string | null; lastTotal: number; createdAt: string };
+export type Agent = { avatarId?: string; id: string; name: string; role: 'builder' | 'reviewer'; responsibility: string; model: string; effort: string; threadId: string | null; lastTotal: number; createdAt: string };
 export type PlanTask = { id: string; title: string; instruction: string; role: Agent['role']; agentId: string | null; dependencies: string[]; estimateTokens: number; outputs: string[] };
 export type PlanMilestone = { id: string; title: string; tasks: PlanTask[] };
 export type PlanProposal = { summary: string; milestones: PlanMilestone[]; suggestedHires: { role: string; responsibility: string; reason: string }[] };
@@ -28,7 +28,9 @@ export type QuotaWindow = { usedPercent: number; windowDurationMins: number | nu
 export type Connection = { status: 'offline' | 'connecting' | 'ready' | 'sign_in_required' | 'wrong_authentication' | 'unavailable'; quota: QuotaWindow[]; model: string | null; error: string | null };
 export type StoragePolicy = { appMiB: number; projectMiB: number; logsMiB: number; retentionDays: number };
 export type StorageUsage = { policy: StoragePolicy; appBytes: number; projectBytes: number; databaseBytes: number; snapshotBytes: number; runtimeBytes: number; reclaimableBytes: number; status: 'ok' | 'warning' | 'blocked' | 'unavailable'; reason: string | null; checkedAt: string | null; cleaning: boolean; lastCleanup: { at: string; files: number; records: number; nativeThreads: number; warning?: string } | null };
-export type Snapshot = { revision?: { instanceId: string; sequence: number }; project: Project | null; messages: Message[]; credits: { used: number; reserved: number; available: number; estimated: number }; connection: Connection; busy: boolean; stopping: boolean; demo: boolean; activity: { text: string; createdAt: string }[]; team: TeamState; recovery: RecoveryItem[]; meetings: MeetingState; checkpoints: GitHubCheckpoint[]; storage?: StorageUsage };
+export type WorkspaceProject = { id: string; name: string; brief: string; folder: string; credits: number; mode: Project['mode']; createdAt: string; updatedAt: string };
+export type WorkspaceState = { projects: WorkspaceProject[]; activeProjectId: string | null; switching: boolean };
+export type Snapshot = { workspace?: WorkspaceState; revision?: { instanceId: string; sequence: number }; project: Project | null; messages: Message[]; credits: { used: number; reserved: number; available: number; estimated: number }; connection: Connection; busy: boolean; stopping: boolean; demo: boolean; activity: { text: string; createdAt: string }[]; team: TeamState; recovery: RecoveryItem[]; meetings: MeetingState; checkpoints: GitHubCheckpoint[]; storage?: StorageUsage };
 
 export type CheckpointPayload = {
   repository: string; projectName: string; summary: string;

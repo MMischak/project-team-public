@@ -1,8 +1,21 @@
-# Project Team
+# Tinkrew
 
-A user assembles an AI team around a project and steers its work through usable deliverables and milestone reviews.
+A user steers one shared AI team across saved projects through usable deliverables and milestone reviews.
 
 ## Language
+
+**Workspace**: The place where a user keeps saved projects and directs one shared team.
+
+**Saved project**: An outcome with its own brief, working folder, conversations, tasks, deliverables and credit allowance.
+_Avoid_: Team, chat
+
+**Active project**: The single saved project currently selected for the shared team.
+_Avoid_: Concurrent project
+
+**Shared team**: The manager and user-selected members whose identities, responsibilities and capability profiles remain the same across saved projects.
+
+**Character**: A member’s distinct fictional illustrated appearance, retained across projects.
+_Avoid_: Photograph, real person
 
 **Task fit**: The alignment between a task's needs and a member's responsibility, model capability and reasoning effort.
 _Avoid_: Always choosing the largest model, guaranteed cheapest model

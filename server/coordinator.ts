@@ -129,6 +129,8 @@ export class Coordinator extends EventEmitter {
     if (typeof input.name !== 'string' || !input.name.trim() || input.name.length > 100 || typeof input.brief !== 'string' || input.brief.length > 8000 || typeof input.folder !== 'string' || !Number.isFinite(input.credits) || input.credits < 1 || input.credits > 1_000_000) throw new AppError('invalid_project');
     let folder: string;
     try { folder = await realpath(input.folder); if (!(await stat(folder)).isDirectory()) throw new Error(); } catch { throw new AppError('folder_unavailable'); }
+    // A switch or another turn can begin while filesystem validation is pending.
+    if (this.busy || this.stopping) throw new AppError('manager_busy', 409);
     const existing = this.store.project();
     if (existing && folder !== existing.folder && this.store.recoveryPending()) throw new AppError('project_folder_locked', 409);
     this.store.saveProject({ name: input.name.trim(), brief: input.brief.trim(), folder, credits: input.credits, mode: existing?.mode ?? 'paused', threadId: existing?.threadId ?? null, lastTotal: existing?.lastTotal ?? 0 });

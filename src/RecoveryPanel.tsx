@@ -6,6 +6,7 @@ import {
   FileText,
 } from "@phosphor-icons/react";
 import type { Snapshot } from "../server/types.ts";
+import { projectHeaders } from "./projectScope.ts";
 
 type Props = {
   state: Snapshot;
@@ -53,7 +54,9 @@ export function RecoveryPanel({ state, api, requesting }: Props) {
     setError("");
     setPreview(null);
     try {
-      const response = await fetch(`/api/recovery-output/${id}`);
+      const response = await fetch(`/api/recovery-output/${id}`, {
+        headers: projectHeaders(state),
+      });
       if (!response.ok) throw new Error();
       const result = await response.json();
       setPreview({ id, content: result.content });
