@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import {
   CheckCircle,
+  FolderSimple,
+  ArrowRight,
   PaperPlaneTilt,
   Paperclip,
   Plus,
@@ -21,6 +23,7 @@ type Props = {
   error: string;
   currentItem: CurrentItem;
   active: boolean;
+  openProject: () => void;
 };
 const number = (value: number) =>
   value.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -37,6 +40,7 @@ export function MeetingRoom({
   error,
   currentItem,
   active,
+  openProject,
 }: Props) {
   const [roomId, setRoomId] = useState(""),
     [create, setCreate] = useState(false),
@@ -138,6 +142,31 @@ export function MeetingRoom({
           New meeting
         </button>
       </div>
+      {state.project && (
+        <div
+          className="meeting-project-context"
+          role="region"
+          aria-label="Project meeting context"
+        >
+          <FolderSimple size={22} aria-hidden="true" />
+          <div>
+            <strong>{state.project.name}</strong>
+            <p>
+              {rooms.length} saved {rooms.length === 1 ? "meeting" : "meetings"}{" "}
+              ·{" "}
+              {state.connection.status !== "ready"
+                ? "Team offline"
+                : state.project.mode === "running"
+                  ? "Team active"
+                  : "Project paused"}
+            </p>
+            <small>Discussions and decisions stay with this project.</small>
+          </div>
+          <button className="quiet" onClick={openProject}>
+            Open project <ArrowRight size={15} />
+          </button>
+        </div>
+      )}
       {active && (
         <RecoveryPanel state={state} api={api} requesting={requesting} />
       )}

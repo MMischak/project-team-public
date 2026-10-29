@@ -50,7 +50,7 @@ async function until(predicate, description = 'workspace operation completed') {
   const deadline = Date.now() + 15000;
   while (true) {
     const value = await state();
-    if (predicate(value)) return value;
+    if (await predicate(value)) return value;
     assert.ok(Date.now() < deadline, description);
     await new Promise(resolve => setTimeout(resolve, 40));
   }
@@ -81,10 +81,33 @@ async function fillProject(name, folder, credits) {
   return dialog;
 }
 async function selectProject(name, id) {
-  await page.getByRole('region', { name: 'Saved projects' }).getByRole('button', { name: 'Open project: ' + name, exact: true }).click();
-  const value = await until(value => value.workspace.activeProjectId === id && !value.workspace.switching, 'requested saved project becomes active');
-  await page.getByRole('heading', { name, exact: true }).waitFor();
+  const dropdown = page.getByRole('combobox', { name: 'Active project', exact: true });
+  await dropdown.selectOption(id);
+  const value = await until(async value =>
+    value.workspace.activeProjectId === id && !value.workspace.switching &&
+    await dropdown.inputValue() === id &&
+    (await page.locator('.eyebrow').innerText()).includes(name) &&
+    await dropdown.evaluate(element => document.activeElement === element),
+  'the requested project is active in the dropdown and focus returns to it');
+  assert.equal(await dropdown.locator('option:checked').textContent(), name);
+  assert.equal(value.project.mode, 'paused', 'a project switch never resumes work');
+  assert.equal(value.connection.status, 'offline', 'switching never reconnects the team automatically');
+  assert.equal(value.busy, false);
   return value;
+}
+async function meetingContext(name, count) {
+  const meeting = page.locator('.meeting-workspace');
+  assert.equal(await meeting.isVisible(), true, 'Meeting room remains visible across project switching');
+  assert.equal(await page.getByRole('navigation', { name: 'Workspace' }).getByRole('button', { name: 'Meeting room', exact: true }).getAttribute('aria-current'), 'page');
+  const context = meeting.getByRole('region', { name: 'Project meeting context', exact: true });
+  await context.getByText(name, { exact: true }).waitFor();
+  assert.match(await context.innerText(), new RegExp(String(count) + ' saved meeting'));
+  assert.equal(await page.locator('.manager-heading p').innerText(), name, 'the conversation header also identifies the active project');
+  return meeting;
+}
+async function capture(name, fullPage = false) {
+  await page.locator('img').evaluateAll(images => Promise.all(images.map(image => image.decode())));
+  await page.screenshot({ path: join(artifacts, name), fullPage });
 }
 async function stop() {
   if (!child || child.exitCode !== null || child.signalCode !== null) return;
@@ -255,9 +278,66 @@ try {
   assert.equal(await page.getByRole('button', { name: 'Send instruction', exact: true }).isDisabled(), true);
   report.checks.push('UI creation rejects overlapping folders; the second project starts paused/offline with the shared team and isolated messages, outputs, tasks, meetings, credits and runtime bindings');
 
+  // The screen stays in Meeting room while its project context and saved discussion change.
+  await page.getByRole('button', { name: 'Meeting room', exact: true }).click();
+  let meeting = await meetingContext('Second launch note', 0);
+  assert.equal(await meeting.getByRole('combobox', { name: 'Meeting', exact: true }).count(), 0);
+  assert.equal(await meeting.locator('.meeting-message').count(), 0);
+  assert.ok(!(await meeting.innerText()).includes('First-project review discussion'));
+  assert.ok(!(await meeting.innerText()).includes('Discuss this captured version only in this project.'));
+  await meeting.getByRole('button', { name: 'New meeting', exact: true }).click();
+  const newMeeting = page.getByRole('dialog');
+  await newMeeting.getByLabel('Meeting title', { exact: true }).fill('Second-project planning discussion');
+  await newMeeting.getByRole('button', { name: 'Create meeting', exact: true }).click();
+  await newMeeting.waitFor({ state: 'hidden' });
+  await until(value => value.meetings.rooms.length === 1);
+  meeting = await meetingContext('Second launch note', 1);
+  assert.deepEqual(await meeting.getByRole('combobox', { name: 'Meeting', exact: true }).locator('option').allTextContents(), ['Second-project planning discussion']);
+  assert.equal(await meeting.locator('.meeting-message').count(), 0);
+
+  value = await selectProject('First product guide', firstId);
+  assert.deepEqual(history(value), firstHistory, 'entering another project’s Meeting room cannot change saved work');
+  meeting = await meetingContext('First product guide', 1);
+  assert.deepEqual(await meeting.getByRole('combobox', { name: 'Meeting', exact: true }).locator('option').allTextContents(), ['First-project review discussion']);
+  await meeting.getByText('Discuss this captured version only in this project.', { exact: true }).waitFor();
+  assert.equal(await meeting.locator('.meeting-message').count(), firstHistory.meetings.messages.length);
+  assert.ok(!(await meeting.innerText()).includes('Second-project planning discussion'));
+  await capture('projects-meeting-first.png');
+  await meeting.getByLabel('Meeting message', { exact: true }).fill('Unsent first-project meeting thought');
+  await meeting.getByLabel('Address meeting message', { exact: true }).selectOption(sharedTeam.find(member => member.role === 'builder').id);
+  await meeting.getByRole('button', { name: 'Attach current item to meeting', exact: true }).click();
+  assert.equal(await meeting.locator('.attachment-chip').count(), 1);
+  assert.equal(await meeting.getByRole('button', { name: 'Request replies', exact: true }).isDisabled(), true);
+
+  await selectProject('Second launch note', secondId);
+  meeting = await meetingContext('Second launch note', 1);
+  assert.deepEqual(await meeting.getByRole('combobox', { name: 'Meeting', exact: true }).locator('option').allTextContents(), ['Second-project planning discussion']);
+  assert.equal(await meeting.locator('.meeting-message').count(), 0);
+  assert.equal(await meeting.getByLabel('Meeting message', { exact: true }).inputValue(), '');
+  assert.equal(await meeting.getByLabel('Address meeting message', { exact: true }).inputValue(), 'all');
+  assert.equal(await meeting.locator('.attachment-chip').count(), 0);
+  assert.ok(!(await meeting.innerText()).includes('Discuss this captured version only in this project.'));
+  assert.equal(await meeting.getByRole('button', { name: 'Request replies', exact: true }).isDisabled(), true);
+  await capture('projects-meeting-second.png');
+
+  await selectProject('First product guide', firstId);
+  meeting = await meetingContext('First product guide', 1);
+  await meeting.getByText('Discuss this captured version only in this project.', { exact: true }).waitFor();
+  assert.equal(await meeting.getByLabel('Meeting message', { exact: true }).inputValue(), '', 'unsent meeting form state is reset rather than carried across projects');
+  assert.equal(await meeting.locator('.attachment-chip').count(), 0);
+  assert.deepEqual(history(await state()), firstHistory);
+  await selectProject('Second launch note', secondId);
+  meeting = await meetingContext('Second launch note', 1);
+  report.checks.push('the native project dropdown retains Meeting room and restores focus while project labels, meeting lists, transcripts and composer state change to the selected project; switching requires explicit reconnect/Resume');
+  await meeting.getByRole('region', { name: 'Project meeting context', exact: true }).getByRole('button', { name: 'Open project', exact: true }).click();
+  await page.getByRole('heading', { name: 'Second launch note', exact: true }).waitFor();
+  assert.equal(await page.getByRole('combobox', { name: 'Active project', exact: true }).inputValue(), secondId);
+
   await page.getByLabel('Message your project manager').fill('Unsent second-project draft');
   value = await selectProject('First product guide', firstId);
   assert.deepEqual(history(value), firstHistory);
+  await page.getByRole('button', { name: 'Write the note', exact: true }).waitFor();
+  assert.equal(await page.locator('.task-row').count(), firstHistory.tasks.length, 'the first project’s processes return with its saved state');
   assert.deepEqual(identities(value), sharedTeam);
   assert.equal(value.project.mode, 'paused');
   assert.equal(value.connection.status, 'offline');
@@ -267,6 +347,7 @@ try {
   const restoredOutput = await page.request.get(base + '/api/output/' + firstOutput.id, { headers: await headers(firstId) });
   assert.deepEqual(await restoredOutput.json(), originalOutput);
   await selectProject('Second launch note', secondId);
+  assert.equal(await page.locator('.task-row').count(), 0, 'the second project does not show the first project’s process queue');
   assert.equal(await page.getByLabel('Message your project manager').inputValue(), 'Unsent second-project draft');
   const secondEmpty = history(await state());
   const staleWrite = await page.request.post(base + '/api/message', { headers: await headers(firstId), data: { id: randomUUID(), text: 'A stale window must never send this.' } });
@@ -303,24 +384,26 @@ try {
   assert.equal(value.connection.status, 'offline');
   assert.equal(value.busy, false);
 
-  for (const view of ['Project', 'Team']) {
+  for (const view of ['Project', 'Team', 'Meeting room']) {
     await page.getByRole('button', { name: view, exact: true }).click();
     for (const width of [320, 390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, view + ' with saved projects fits ' + width + 'px');
       assert.equal(await page.locator('.credit-bar').isVisible(), true);
       assert.equal(await page.getByRole('button', { name: 'New project', exact: true }).isVisible(), true);
-      assert.equal(await page.getByRole('button', { name: 'Open project: First product guide', exact: true }).isVisible(), true);
-      assert.equal(await page.getByRole('button', { name: 'Open project: Second launch note', exact: true }).isVisible(), true);
+      const projectDropdown = page.getByRole('combobox', { name: 'Active project', exact: true });
+      assert.equal(await projectDropdown.isVisible(), true);
+      assert.equal(await projectDropdown.inputValue(), secondId);
+      assert.deepEqual(await projectDropdown.locator('option').allTextContents(), ['First product guide', 'Second launch note']);
     }
   }
   report.checks.push('independent credit ledgers, selected-project/roster/history reload persistence and saved-project navigation at 320–1440px');
 
   await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.screenshot({ path: join(artifacts, 'projects-desktop.png'), fullPage: true });
+  await capture('projects-desktop.png', true);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({ path: join(artifacts, 'projects-mobile.png'), fullPage: false });
+  await capture('projects-mobile.png');
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   await stop();
@@ -344,7 +427,7 @@ try {
   assert.deepEqual(externalRequests, [], 'browser never requests an external network service');
   report.checks.push('graceful coordinator restart restores both projects and their single team without inference, replay, external requests or browser errors');
   report.expectedStreamClosures = expectedStreamClosures;
-  report.artifacts = ['projects-desktop.png', 'projects-mobile.png'];
+  report.artifacts = ['projects-desktop.png', 'projects-mobile.png', 'projects-meeting-first.png', 'projects-meeting-second.png'];
   report.passed = true;
 } finally {
   if (!report.passed && page && !page.isClosed()) await page.screenshot({ path: join(artifacts, 'projects-failure.png'), fullPage: false }).catch(() => {});

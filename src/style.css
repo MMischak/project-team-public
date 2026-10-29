@@ -272,7 +272,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 23px 10px 8px;
+  margin: 0 2px 9px;
   font-size: 10px;
   font-weight: 600;
   color: var(--muted);
@@ -283,50 +283,99 @@ button {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
 }
-.project-list-items {
-  max-height: min(27dvh, 270px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-.saved-project {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 42px;
-  width: 100%;
-  padding: 10px;
-  color: #566174;
-  border-radius: 7px;
-  background: transparent;
-  text-align: left;
-  font-size: 12px;
-}
-.saved-project > svg {
-  flex-shrink: 0;
-}
-.saved-project > span {
+.project-select {
+  position: relative;
   min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
-.saved-project:hover {
-  background: #f7f8fa;
-}
-.saved-project.active {
-  color: #1f57ad;
-  background: #f0f5ff;
+.project-select select {
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 12px 28px 12px 34px;
+  border: 1px solid #d8e1ef;
+  border-radius: 9px;
+  background: #f7faff;
+  color: #1e3559;
+  font: inherit;
+  font-size: 12px;
   font-weight: 600;
+  text-overflow: ellipsis;
+  cursor: pointer;
 }
-.saved-project.active:disabled {
-  opacity: 1;
+.project-select > svg {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #4779cb;
+}
+.project-select > svg:first-child {
+  left: 10px;
+}
+.project-select > svg:last-child {
+  right: 10px;
+  color: #61718a;
+}
+.project-select > svg.spin {
+  top: calc(50% - 7.5px);
+}
+.project-select select:disabled {
   cursor: default;
 }
-.project-list-items > p {
-  padding: 3px 10px;
+.project-list .new-project {
+  margin-top: 15px;
+}
+.meeting-project-context {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 18px 20px;
+  margin: 22px 0 26px;
+  border: 1px solid #e0e7f1;
+  border-radius: 10px;
+  background: #f8faff;
+}
+.meeting-project-context > svg {
+  flex-shrink: 0;
+  color: #4779cb;
+}
+.meeting-project-context > div {
+  flex: 1;
+  min-width: 0;
+}
+.meeting-project-context strong {
+  display: block;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.meeting-project-context p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.meeting-project-context small {
+  display: block;
   font-size: 11px;
   color: var(--muted);
+  margin-top: 5px;
+  line-height: 1.5;
+}
+.meeting-project-context button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.manager-heading > div {
+  min-width: 0;
+}
+.manager-project-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
 }
 .shared-team-note {
   display: flex;
@@ -1463,13 +1512,19 @@ button.roster-member:hover strong {
   display: flex;
   align-items: center;
   gap: 0;
+  row-gap: 4px;
+  flex-wrap: wrap;
+  max-width: 100%;
   flex-shrink: 0;
 }
 .meeting-participant-avatar {
   display: flex;
   margin-left: -8px;
 }
-.meeting-participant-avatar .agent-avatar {
+.meeting-participant-avatar:first-child {
+  margin-left: 0;
+}
+.meeting-participant-avatar.agent-avatar {
   width: 34px;
   height: 34px;
   border: 3px solid #fff;
@@ -2728,44 +2783,41 @@ progress::-webkit-progress-value {
 @media (max-width: 760px) {
   .project-list {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 7px 12px;
     margin: 0 0 7px;
-    padding: 2px 0 10px;
-  }
-  .new-project {
-    grid-column: 2;
-    grid-row: 1;
-    width: auto;
-    padding: 8px 11px;
-    font-size: 11px;
+    padding: 3px 0 12px;
   }
   .project-list-label {
-    grid-column: 1;
-    grid-row: 1;
-    margin: 0 6px;
+    grid-column: 1 / -1;
+    margin: 0 2px;
     justify-content: flex-start;
     gap: 9px;
   }
-  .project-list-items {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 5px;
-    overflow: auto;
-    max-height: none;
+  .project-select {
+    grid-column: 1;
   }
-  .saved-project {
-    flex: 0 0 auto;
-    width: auto;
-    max-width: 190px;
-    min-height: 38px;
-    padding: 8px 10px;
-  }
-  .project-list-items > p {
-    margin: 4px;
+  .project-list .new-project {
+    grid-column: 2;
+    margin: 0;
+    padding: 8px 11px;
+    font-size: 11px;
   }
   .shared-team-note {
     display: none;
+  }
+  .meeting-project-context {
+    flex-wrap: wrap;
+    padding: 15px;
+  }
+  .meeting-project-context > div {
+    flex-basis: calc(100% - 40px);
+  }
+  .meeting-project-context button {
+    margin-left: 35px;
+  }
+  .manager-project-name {
+    max-width: min(220px, 45vw);
   }
 }
 @media (prefers-reduced-motion: reduce) {

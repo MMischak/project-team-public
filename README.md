@@ -41,7 +41,7 @@ The goal is **appropriate capability for the task**. Keep routine work focused, 
 
 ## What is built
 
-- **Saved projects:** keep several projects and switch one shared team between them. Conversations, work, outputs and credits stay with their project.
+- **Saved projects:** keep several projects and switch one shared team between them with the project dropdown. Conversations, work, outputs and credits stay with their project.
 - **Distinct characters:** each member has a persistent original animated portrait, even when two members share a role.
 - **Team composition:** discover the available Codex model catalog; choose each hired member's model, responsibility and reasoning effort.
 - **Manager-led work:** proposed plans, sequential execution, explicit approvals and milestone gates.

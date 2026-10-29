@@ -173,7 +173,16 @@ const stamp = (value: string) =>
 export function App() {
   const [state, setState] = useState<State | null>(null);
   const [reconnecting, setReconnecting] = useState(false);
+  const [view, setView] = useState("Project");
   const drafts = useRef(new Map<string, string>());
+  const lastProject = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (!state?.workspace) return;
+    const projectId = state.workspace.activeProjectId;
+    if (lastProject.current !== undefined && lastProject.current !== projectId)
+      document.getElementById("active-project")?.focus();
+    lastProject.current = projectId;
+  }, [state?.workspace?.activeProjectId]);
   useEffect(() => {
     const events = new EventSource("/api/events");
     events.onmessage = (event) => {
@@ -202,6 +211,8 @@ export function App() {
     <WorkspaceSession
       key={scope}
       state={state}
+      view={view}
+      setView={setView}
       updateState={(next) =>
         setState((previous) => latestSnapshot(previous, restoreState(next)))
       }
@@ -217,18 +228,21 @@ export function App() {
 
 function WorkspaceSession({
   state,
+  view,
+  setView,
   updateState,
   reconnecting,
   initialDraft,
   saveDraft,
 }: {
   state: State;
+  view: string;
+  setView: (view: string) => void;
   updateState: (next: State) => void;
   reconnecting: boolean;
   initialDraft: string;
   saveDraft: (text: string) => void;
 }) {
-  const [view, setView] = useState("Project");
   const [settings, setSettings] = useState(false);
   const [edit, setEdit] = useState(false);
   const [create, setCreate] = useState(false);
@@ -647,6 +661,7 @@ function WorkspaceSession({
               error={error}
               currentItem={currentItem}
               active={view === "Meeting room"}
+              openProject={() => setView("Project")}
             />
           </div>
           <footer className="project-footer">
@@ -666,7 +681,9 @@ function WorkspaceSession({
             <img src="/avatars/manager.png" alt="Manager portrait" />
             <div>
               <h2>Manager</h2>
-              <p>Project manager</p>
+              <p className="manager-project-name" title={project?.name}>
+                {project?.name ?? "Project manager"}
+              </p>
               <span className={`status ${ready ? "green" : ""}`}>
                 <span />
                 {managerStatus}

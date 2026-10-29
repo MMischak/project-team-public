@@ -20,7 +20,7 @@ Reviewing a proposed plan opens its assignments, outputs, dependencies and estim
 
 Keep project credits visible at every width. On small screens navigation becomes a compact row and the manager conversation follows the work. Dialogs scroll within the viewport, preserve keyboard focus and expose a separate close action. Respect reduced-motion preferences.
 
-The sidebar lists saved projects and a separate New project action. One shared crew works on the selected project. A switch first saves/drains work, then opens the destination paused and disconnected; it does not authorize a new turn. Project views and attachments reset at the boundary, while unsent manager drafts stay in browser memory under their project until sent or the page closes.
+The sidebar uses an Active project dropdown and a separate New project action. One shared crew works on the selected project. A switch first saves/drains work, then opens the destination paused and disconnected; it does not authorize a new turn. The selected section remains open across a switch, while its content, dialogs and attachments stay scoped to the selected project. The Meeting room shows its project name, meeting count and paused/offline state, so switching in that section directly reveals the destination project’s meetings. Unsent manager drafts stay in browser memory under their project until sent or the page closes.
 
 Apply this language consistently to hiring, team profiles, meetings, captured outputs, recovery, GitHub previews and storage settings. Preserve truthful loading, offline, paused, working and review states.
 

@@ -24,4 +24,10 @@ The earlier [visual target](docs/assets/design-target.png) documents the approve
 
 The scoped independent backend review has no unresolved high-priority finding. Publication-content and secret scans are required before pushing.
 
+## Project dropdown follow-up
+
+The Active project control is now a native dropdown. Switching keeps the selected section open while all project-specific controls remain scoped by the keyed session. Meeting room identifies its project, meeting count and paused/offline state; the manager header also names the current project. Keyboard focus returns to the selector after a switch.
+
+Production/type checks and the workspace, meeting and saved-project browser workflows were rerun successfully. The expanded saved-project workflow switches between distinct meetings/transcripts without leaving Meeting room, checks draft/recipient/attachment reset, independent process queues and explicit reconnect/Resume. Project, Team and Meeting room fit 320–1440 pixels with all nine participants. A previously incorrect avatar-stack sizing selector was fixed when this full-participant mobile check exposed it. Success captures wait for images to decode.
+
 final result: passed
